@@ -44,7 +44,7 @@ def new_file_name_generator(filepath):
     '''
     month_findr = re.compile(r"(January | February | March | April | May | June | July | August | September | October | November | December)")
     policyNo_findr = re.compile(r"Policy No\. ([0-9/-]*)")
-    name_findr = re.compile(r"Policyowner(.*?)(\n*?)DEAN E HARDER ([A-Z _]*)")
+    name_findr = re.compile(r"Policyowner(.*?)(\n*?)ADVISOR_NAME_HERE ([A-Z _]*)")
     name_findr2 = re.compile(r"Policyholder:\n[A-Za-z ]*[0-9]*([A-Za-z ]*)")
 
     save_names = []
