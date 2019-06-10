@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import filedialog as fd
-import image_reader
+import process_pdf
 
 
 class Browse(tk.Frame):
@@ -16,10 +16,10 @@ class Browse(tk.Frame):
         self._create_widgets()
         self._display_widgets()
 
+
     def _create_widgets(self):
         self._entry = tk.Entry(self, textvariable=self.filepath)
         self._button = tk.Button(self, text="Browse...", command=self.browse)
-        # self._button = tk.Button(self, text="Submit", command=image_reader.process_pdf())
 
     def _display_widgets(self):
         self._entry.pack(fill='x', expand=True)
@@ -28,18 +28,36 @@ class Browse(tk.Frame):
     def browse(self):
         """ Browses a .pdf file or all files and then puts it on the entry.
         """
+        global files
+        files = fd.askopenfilenames(initialdir=self._initaldir,
+                                             filetypes=self._filetypes)
+        files = root.tk.splitlist(files)
+        self.filepath.set(files)
+def call_proccess_pdf():
+    global files
+    no_errors=True
+    for each_file in files:
+        try:
+            process_pdf.init(each_file)
+        except:
+            no_errors=False
+            print("ERROR: Unable to process file: ", each_file)
+    if(no_errors):
+        print("All files successfully processed!")
 
-        self.filepath.set(fd.askopenfilename(initialdir=self._initaldir,
-                                             filetypes=self._filetypes))
+files = tuple()
 
 root = tk.Tk()
 filetypes = (
     ('Portable Document Format', '*.pdf'),
     ("All files", "*.*")
 )
-file_browser = Browse(root, initialdir=r"C:\Users",
+# change this to whatever you want to be the main directory for your search
+file_browser = Browse(root, initialdir=r"C:\Users\student\Documents",
                       filetypes=filetypes)
-
+# TODO: Selection of the specific file path rather than the root directory of this code
 file_browser.pack(fill='x', expand=True)
+submit_button = tk.Button(root, text="Submit", command=call_proccess_pdf)
+submit_button.pack(fill='x')
 
 root.mainloop()
