@@ -42,37 +42,51 @@ def new_file_name_generator(filepath):
     :param filepath: path of the original pdf document - containing multiple annual reports
     :return: list of the valid save names of all reports in that document
     '''
+
+    # Defines Regular Expressions for finding following information
     month_findr = re.compile(r"(January | February | March | April | May | June | July | August | September | October | November | December)")
     policyNo_findr = re.compile(r"Policy No\. ([0-9/-]*)")
-    name_findr = re.compile(r"Policyowner(.*?)(\n*?)ADVISOR_NAME_HERE ([A-Z _]*)")
+    name_findr = re.compile(r"Policyowner(.*?)(\n*?)DEAN E HARDER ([A-Z _]*)")
     name_findr2 = re.compile(r"Policyholder:\n[A-Za-z ]*[0-9]*([A-Za-z ]*)")
 
+    # Initiates list to Store save names of each individual page
     save_names = []
+
+    # Split entire pdf document into its own page and analyze text
     pages = convert_from_path(filepath)
     for page in pages:
+
+        # save a jpeg to allow for easier OCR (optimal character recognition)
         page.save('out.jgp', 'JPEG')
         jpg_open = Image.open('out.jgp')
-        output_text = image_to_string(jpg_open, lang='eng')
+        output_text = image_to_string(jpg_open, lang='eng') # output OCR to string
 
+        # boolean flags to determine if item has been properly found in OCR string
         has_name = False
         has_month = False
         has_policy = False
+
+        # placeholder for new file name values
         month="MONTH"
         policy_no="POLICY_NO"
         name="NAME"
 
+        # set the month based on the regex established
         for match in month_findr.finditer(output_text):
             month = match.group(1)
             has_month = True
+        # set the policy number based on regex established
         for match in policyNo_findr.finditer(output_text):
             policy_no = match.group(1)
             policy_no = policy_no.replace("-","")
             has_policy = True
+        # set the name of the policy owner based on the regex established
         for match in name_findr.finditer(output_text):
             name = match.group(3)
             name = name.strip().replace("_","")
             name = prepare_name(name)
             has_name = True
+        # if that name didnt work, try another possibilty for finding the appropriate name
         if (not has_name):
             for match in name_findr2.finditer(output_text):
                 name = match.group(1)
@@ -82,7 +96,7 @@ def new_file_name_generator(filepath):
 
         # CREATE FILE NAME
         path_name = name + " " + policy_no + month + "Annual Statement.pdf"
-        save_names.append(path_name)
+        save_names.append(path_name) #append to path name
     return save_names
 
 def init(path):
@@ -92,24 +106,29 @@ def init(path):
     :param path: the file path of the original document
     :return: none, generates n new files where n is the length of the pdf document
     '''
+    # creates file names as per user's original requirements
     file_names = new_file_name_generator(path)
     fname = os.path.splitext(os.path.basename(path))[0]
-    print(file_names)
+    # print(file_names)
 
+    # splits by page and saves the files to location
     pdf = PdfFileReader(path)
     for page in range(pdf.getNumPages()):
         if (page != "NONE"):
             pdf_writer = PdfFileWriter()
             pdf_writer.addPage(pdf.getPage(page))
 
+            # select appropriate file name based on the generator
             output_filename = file_names[page]
 
             # TODO: save to a user defined location
+            # saves the file to the appropriate destination
             with open(output_filename, 'wb') as out:
                 pdf_writer.write(out)
 
         # print('Created: {}'.format(output_filename))
 
+# times the process
 # start_time = time.time()
 # init("whole_life.pdf")
 # print("--- %s seconds ---" % (time.time() - start_time))
