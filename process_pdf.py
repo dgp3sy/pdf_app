@@ -18,7 +18,6 @@ def prepare_name(name):
     :param name: string, name in the format: first name (possible middle name) last name
     :return: name: string, in the format: last name, first name
     '''
-    print(name)
     middle_name = False
     if name.count(' ') == 2:
         middle_name = True
@@ -33,7 +32,7 @@ def prepare_name(name):
         last_name = name[n+1:]
     return last_name+ ", " + first_name
 
-def new_file_name_generator_17(filepath):
+def file_name_generator_new(filepath):
     '''
     Generates file path names in the format: Last Name, First Name Policy_Number Month Annual Report.pdf
     First, this function reads the pdf, converts to jpeg format, uses optimal character recognition (OCR)
@@ -112,7 +111,7 @@ def new_file_name_generator_17(filepath):
     return save_names
 
 
-def new_file_name_generator_161(filepath):
+def file_name_generator_old(filepath):
     '''
     Generates file path names in the format: Last Name, First Name Policy_Number Month Annual Report.pdf
     First, this function reads the pdf, converts to jpeg format, uses optimal character recognition (OCR)
@@ -192,7 +191,7 @@ def init_new(path):
     :return: none, generates n new files where n is the length of the pdf document
     '''
     # creates file names as per user's original requirements
-    file_names = new_file_name_generator_17(path)
+    file_names = file_name_generator_new(path)
     fname = os.path.splitext(os.path.basename(path))[0]
     # print(file_names)
 
@@ -225,7 +224,7 @@ def init_old(path):
         :return: none, generates n new files where n is the length of the pdf document
         '''
     # creates file names as per user's original requirements
-    file_names = new_file_name_generator_17(path)
+    file_names = file_name_generator_old(path)
     fname = os.path.splitext(os.path.basename(path))[0]
     # print(file_names)
 
@@ -251,6 +250,6 @@ def init_old(path):
 pytesseract.pytesseract.tesseract_cmd =  r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 # times the process
 start_time = time.time()
-# init("test3.pdf")
+# init_old("test2.pdf")
 print("--- %s seconds ---" % (time.time() - start_time))
 
