@@ -1,6 +1,6 @@
 # Annual Report Processor
 
-Application to read scanned pdf documents of annual and quarterly report and prepare them for electronic filing. This is a project inspired by previous internship work in order to automate a process for companies in the future. Learn more about building this project here.
+Application to read scanned pdf documents of annual and quarterly report and prepare them for electronic filing. This is a project inspired by previous internship work in order to automate a process for companies in the future. Learn more about building this project by going to my [website](http://people.virginia.edu/~dgp3sy/python-processor.html).
 
 ## Getting Started
 ### Prerequisites
