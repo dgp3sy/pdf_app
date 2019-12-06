@@ -1,7 +1,6 @@
 # Annual Report Processor
 
-This code proccesses and extracts information regarding annual reports for electronic filing. 
-
+Application to read scanned pdf documents of annual and quarterly report and prepare them for electronic filing. This is a project inspired by previous internship work in order to automate a process for companies in the future. Learn more about building this project here.
 
 ## Getting Started
 ### Prerequisites
@@ -35,5 +34,4 @@ This code is specific to a file structure, and uses regular expressions to searc
 ## License
 
 Copyright © 2019, [Dan Perkins](https://github.com/dgp3sy). All Rights Reserved
-Released under the [MIT License](LICENSE).
 
