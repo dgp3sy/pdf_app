@@ -3,7 +3,7 @@
 This code proccesses and extracts information regarding annual reports for electronic filing. 
 
 
-
+## Getting Started
 ### Prerequisites
 
 Make sure you have python 3.6, and install the following packages: , pytesseract, PyPDF2, PIL
@@ -29,7 +29,7 @@ This code is specific to a file structure, and uses regular expressions to searc
 
 ## Authors
 
-* **Dan Perkins** - *Initial work* - [PurpleBooth](https://github.com/PurpleBooth)
+* **Dan Perkins**
 
 
 ## License
