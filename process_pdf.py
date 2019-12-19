@@ -55,6 +55,8 @@ def file_name_generator_new(filepath):
 
     # search every other page
     for page in pages:
+        print("Processing Page", page, "...")
+
         count += 1
         # save a jpeg to allow for easier OCR (optimal character recognition)
         page.save('out.jgp', 'JPEG')
@@ -135,6 +137,8 @@ def file_name_generator_old(filepath):
     # Split entire pdf document into its own page and analyze text
     pages = convert_from_path(filepath)
     for page in pages:
+        print("Processing Page", page, "...")
+
 
         # save a jpeg to allow for easier OCR (optimal character recognition)
         page.save('out.jgp', 'JPEG')
@@ -199,7 +203,7 @@ def init_new(path):
     pages = 2
 
     # splits by page and saves the files to location
-    pdf = PdfFileReader(path)
+    pdf = PdfFileReader(path, strict=False)
     for page in range(0, pdf.getNumPages(), pages):
         if (page != "NONE"):
             pdf_writer = PdfFileWriter()
@@ -232,7 +236,9 @@ def init_old(path):
     pages = 1
 
     # splits by page and saves the files to location
-    pdf = PdfFileReader(path)
+    pdf = PdfFileReader(path, strict=False)
+
+    save_location = "C:\\Users\\jmper\\Desktop\\Extracted Pages\\"
     for page in range(0, pdf.getNumPages(), pages):
         if (page != "NONE"):
             pdf_writer = PdfFileWriter()
@@ -241,15 +247,17 @@ def init_old(path):
             # select appropriate file name based on the generator
             output_filename = file_names[page]
 
-            # TODO: save to a user defined location
             # saves the file to the appropriate destination
-            with open(output_filename, 'wb') as out:
+            with open(save_location+output_filename, 'wb') as out:
                 pdf_writer.write(out)
+
+
 
 
 pytesseract.pytesseract.tesseract_cmd =  r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 # times the process
-start_time = time.time()
+# start_time = time.time()
+# init_old("C:\\Users\\jmper\\Documents\\Scans\\2019-11-26_103051.pdf")
 # init_old("test2.pdf")
-print("--- %s seconds ---" % (time.time() - start_time))
+# print("--- %s seconds ---" % (time.time() - start_time))
 
