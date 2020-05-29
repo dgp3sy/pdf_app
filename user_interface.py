@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import filedialog as fd
-import process_pdf
+import annual_report_reader
 import time
 
 
@@ -43,7 +43,7 @@ class Browse(tk.Frame):
 def call_proccess_pdf():
     """
     For each file selected in the browser UI, the system calls the init() function to process the file individually
-    This function can be found in process_pdf.py and splits the file under specifications of page length and file name
+    This function can be found in annual_report_reader.py and splits the file under specifications of page length and file name
     if there is an error, the file that was unable to be processed is notified to the user
     :return: None, although displays print to console if there is a successful job completed
     """
@@ -52,8 +52,10 @@ def call_proccess_pdf():
     # start_time = time.time()
     no_errors=True
     for each_file in files:
+        print(each_file)
+        annual_report_reader.init(each_file)
         try:
-            process_pdf.init(each_file)
+            annual_report_reader.init(each_file)
         except:
             no_errors=False
             print("ERROR: Unable to process file: ", each_file)
