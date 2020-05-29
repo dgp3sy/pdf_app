@@ -36,7 +36,7 @@ def process_pdf(filepath):
     month_findr = re.compile(r"(January | February | March | April | May | June | July | August | September | October | November | December)")
     policyNo_findr = re.compile(r"Policy No\. ([0-9/-]*)")
     # change this to the advisor name
-    name_findr = re.compile(r"Policyowner(.*?)(\n*?)ADVISOR NAME ([A-Z _]*)")
+    name_findr = re.compile(r"Policyowner(.*?)(\n*?)DEAN HARDER ([A-Z _]*)")
 
     save_names = []
     pages = convert_from_path(filepath)

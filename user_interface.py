@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import filedialog as fd
-import annual_report_reader
+import process_pdf
 import time
 
 
@@ -43,19 +43,23 @@ class Browse(tk.Frame):
 def call_proccess_pdf():
     """
     For each file selected in the browser UI, the system calls the init() function to process the file individually
-    This function can be found in annual_report_reader.py and splits the file under specifications of page length and file name
+    This function can be found in process_pdf.py and splits the file under specifications of page length and file name
     if there is an error, the file that was unable to be processed is notified to the user
     :return: None, although displays print to console if there is a successful job completed
     """
     global files
+    global var1
     # output time for diagnostic purposes only - can be implemented by the user if desired
     # start_time = time.time()
     no_errors=True
     for each_file in files:
-        print(each_file)
-        annual_report_reader.init(each_file)
         try:
-            annual_report_reader.init(each_file)
+            if var1.get():
+                # print("new proccess being filed")
+                process_pdf.init_new(each_file)
+            else:
+                # print("old process being filed")
+                process_pdf.init_old(each_file)
         except:
             no_errors=False
             print("ERROR: Unable to process file: ", each_file)
@@ -68,7 +72,7 @@ files = tuple()
 
 # establishes the root tkinter for the UI
 root = tk.Tk()
-root.geometry("500x100") # sets the size of the UI window to 500px width by 100 px height
+root.geometry("500x200") # sets the size of the UI window to 500px width by 200 px height
 
 # defines the file types the user can search for - the purpose of this processor is mainly for pdfs
 filetypes = (
@@ -80,15 +84,20 @@ filetypes = (
 select_file_label = tk.Label(root, text="Select Report to Process:")
 
 # change this to whatever you want to be the main directory for your search
-file_browser = Browse(root, initialdir=r"C:\Users\student\Documents", filetypes=filetypes)
+file_browser = Browse(root, initialdir=r"C:\Users", filetypes=filetypes)
 
 # defines the submit button to start the process, calls the function on every file passed through the file browser
 submit_button = tk.Button(root, text="Submit", command=call_proccess_pdf)
+
+# Determines the type of document
+var1 = tk.IntVar()
+doc_type = tk.Checkbutton(root, text="New", variable=var1, onvalue = 1, offvalue = 0, height=5, width = 10)
 
 # TODO: Selection of the specific file path rather than the root directory of this code
 
 # Displays UI to the screen
 select_file_label.pack()
 file_browser.pack(fill='x', expand=True)
+doc_type.pack()
 submit_button.pack(fill='x')
 root.mainloop()
