@@ -112,7 +112,7 @@ def init_ido_reader(path):
                 pdf_writer.addPage(pdf.getPage(i + j))
 
             # select appropriate file name based on the generator
-            output_filename = file_names[i]
+            output_filename = file_names[i//num_pages]
 
             # TODO: save to a user defined location
             # saves the file to the appropriate destination
