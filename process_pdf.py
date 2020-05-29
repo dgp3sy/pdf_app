@@ -207,6 +207,9 @@ def init_new(path):
     # manual override of save location here
     # save_location = "C:\\Users\\jmper\\Desktop\\Extracted Pages\\"
 
+    if not os.path.exists(save_location):
+        os.makedirs(save_location)
+
 
     # splits by page and saves the files to location
     pdf = PdfFileReader(path, strict=False)
