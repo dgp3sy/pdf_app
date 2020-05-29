@@ -110,9 +110,9 @@ def file_name_generator_new(filepath):
         if count >= 2:
             count = 1
             output_text = ""
+    print((save_names))
+
     return save_names
-
-
 def file_name_generator_old(filepath):
     '''
     Generates file path names in the format: Last Name, First Name Policy_Number Month Annual Report.pdf
@@ -183,10 +183,7 @@ def file_name_generator_old(filepath):
         # CREATE FILE NAME
         path_name = name + " " + policy_no + month + "Annual Statement.pdf"
         save_names.append(path_name) #append to path name
-
-
     return save_names
-
 def init_new(path):
     '''
     Initializes the pdf processor: takes in the path of the original file, calls the new_file_name_generator() helper
@@ -202,6 +199,15 @@ def init_new(path):
     # exit condition - unable to determine page count
     pages = 2
 
+
+    # Get file path of desktop - extract to folder
+    desktop = os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop')
+    save_location = desktop+"\\Extracted Pages\\"
+
+    # manual override of save location here
+    # save_location = "C:\\Users\\jmper\\Desktop\\Extracted Pages\\"
+
+
     # splits by page and saves the files to location
     pdf = PdfFileReader(path, strict=False)
     for page in range(0, pdf.getNumPages(), pages):
@@ -216,7 +222,7 @@ def init_new(path):
 
             # TODO: save to a user defined location
             # saves the file to the appropriate destination
-            with open(output_filename, 'wb') as out:
+            with open(save_location+output_filename, 'wb') as out:
                 pdf_writer.write(out)
 
 
