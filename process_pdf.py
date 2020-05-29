@@ -238,7 +238,19 @@ def init_old(path):
     # splits by page and saves the files to location
     pdf = PdfFileReader(path, strict=False)
 
-    save_location = "C:\\Users\\jmper\\Desktop\\Extracted Pages\\"
+    #### Edit Save Location Here ####
+
+    # Get file path of desktop - extract to folder
+    desktop = os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop')
+    save_location = desktop+"\\Extracted Pages\\"
+
+    # manual override of save location here
+    # save_location = "C:\\Users\\jmper\\Desktop\\Extracted Pages\\"
+
+    # create folder if the path doesn't exist
+    if not os.path.exists(save_location):
+        os.makedirs(save_location)
+
     for page in range(0, pdf.getNumPages(), pages):
         if (page != "NONE"):
             pdf_writer = PdfFileWriter()
