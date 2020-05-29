@@ -3,12 +3,33 @@ from pytesseract import image_to_string
 from pdf2image import convert_from_path
 from PyPDF2 import PdfFileReader, PdfFileWriter
 from PIL import Image
+import ido_reader
 import time
 import re
 import os
 
 
-
+def prepare_month(num):
+    '''
+    Converts integers to string value of month using dictionary
+    :param num: (int) Integer value of month, expected values: 1-12
+    :return: (str) String value that corresponds to that integer's month
+    '''
+    month_dict = {
+        1:"January",
+        2:"February",
+        3:"March",
+        4:"April",
+        5:"May",
+        6:"June",
+        7:"July",
+        8:"August",
+        9:"September",
+        10:"October",
+        11:"November",
+        12:"December"
+    }
+    return month_dict.get(num, "MONTH ")
 
 def prepare_name(name):
     '''
@@ -41,7 +62,8 @@ def file_name_generator_new(filepath):
     :param filepath: path of the original pdf document - containing multiple annual reports
     :return: list of the valid save names of all reports in that document
     '''
-    month_findr = re.compile(r"(January | February | March | April | May | June | July | August | September | October | November | December)")
+    # month_findr = re.compile(r"(January | February | March | April | May | June | July | August | September | October | November | December)")
+    date_findr = re.compile(r"through ([0-9]{2})/([0-9]{2})/([0-9]{4})")
     insured_findr = re.compile(r"Dean E Harder ([A-Za-z ]*)")
     insured_findr2 = re.compile(r"Dear ([A-Za-z ]*),")
     policyNo_findr_new = re.compile(r"(07[1|2][0-9]{7})")
@@ -52,67 +74,67 @@ def file_name_generator_new(filepath):
     pages = convert_from_path(filepath)
     output_text = ""
     count = 0
-
-    # search every other page
+    output_text_list = []
+    # put the text of pages into list - grouping by pairs of two pages
     for page in pages:
-        print("Processing Page", page, "...")
-
         count += 1
         # save a jpeg to allow for easier OCR (optimal character recognition)
         page.save('out.jgp', 'JPEG')
         jpg_open = Image.open('out.jgp')
         output_text += image_to_string(jpg_open, lang='eng')  # output OCR to string
-
-
+        if count == 2:
+            print("Processing Page", page, "...")
+            output_text_list.append(output_text)
+            output_text = ""
+            count = 0
+    # extract information from each policy owner's form
+    for text in output_text_list:
         # boolean flags to determine if item has been properly found in OCR string
-        has_name = False
-        has_month = False
-        has_policy = False
+        found_name = False
+        found_policy = False
 
         # placeholder for new file name values
         month = "MONTH "
+        year = "YEAR "
         policy_no = "POLICY_NO "
         name = "NAME"
         # set the month based on the regex established
-        for match in month_findr.finditer(output_text):
-            month = match.group(1)
-            has_month = True
+        for match in date_findr.finditer(text):
+            month_num = int(match.group(1))
+            month = prepare_month(month_num)+" "
+            year = match.group(3)+" "
+
         # set the policy number based on regex established
-        for match in policyNo_findr_new.finditer(output_text):
+        for match in policyNo_findr_new.finditer(text):
             policy_no = match.group(1)
             policy_no = policy_no.replace("-", "")
 
             # Add zero to certain policy numbers - user requirement
             policy_no = policy_no + " "
-            has_policy = True
+            found_policy = True
 
         # check to see if the policy is a new policy
-        if not has_policy:
-            for match in policyNo_findr_new.finditer(output_text):
+        if not found_policy:
+            for match in policyNo_findr_new.finditer(text):
                 policy_no = match.group(1)
-                has_policy = True
+                found_policy = True
+
         # find the individual who is insured under the policy
-        for match in insured_findr.finditer(output_text):
+        for match in insured_findr.finditer(text):
             name = match.group(1)
             name = name.strip().replace("-", "")
             name = prepare_name(name)
-            has_name = True
-        if not has_name:
-            for match in insured_findr2.finditer(output_text):
+            found_name = True
+        if not found_name:
+            for match in insured_findr2.finditer(text):
                 name = match.group(1)
                 name = prepare_name(name)
-                has_name = True
+                found_name = True
         # CREATE FILE NAME
-        path_name = name + " " + policy_no + month + "Annual Statement.pdf"
+        path_name = name + " " + policy_no + month + year + "Annual Statement.pdf"
         save_names.append(path_name)  # append to path name
-
-        # Reset pages
-        if count >= 2:
-            count = 1
-            output_text = ""
-    print((save_names))
-
     return save_names
+
 def file_name_generator_old(filepath):
     '''
     Generates file path names in the format: Last Name, First Name Policy_Number Month Annual Report.pdf
@@ -125,6 +147,7 @@ def file_name_generator_old(filepath):
 
     # Defines Regular Expressions for finding following information
     month_findr = re.compile(r"(January | February | March | April | May | June | July | August | September | October | November | December)")
+    year_findr = re.compile(r"through [A-Za-z ]*[0-9]*, ([0-9]{4})")
     policyNo_findr_old = re.compile(r"Policy No\. ([0-9/-]*)")
     insured_findr = re.compile(r"which insures ([A-Za-z ]*)")
 
@@ -145,43 +168,44 @@ def file_name_generator_old(filepath):
         jpg_open = Image.open('out.jgp')
         output_text = image_to_string(jpg_open, lang='eng') # output OCR to string
 
-        # boolean flags to determine if item has been properly found in OCR string
-        has_name = False
-        has_month = False
-        has_policy = False
+        # boolean flags for finding information
+        found_policy = False
 
         # placeholder for new file name values
         month="MONTH "
+        year = "YEAR "
         policy_no="POLICY_NO "
         name="NAME"
 
         # set the month based on the regex established
         for match in month_findr.finditer(output_text):
             month = match.group(1)
-            has_month = True
+
+        # find the year
+        for match in year_findr.finditer(output_text):
+            year = match.group(1)+" "
+
         # set the policy number based on regex established
         for match in policyNo_findr_old.finditer(output_text):
             policy_no = match.group(1)
             policy_no = policy_no.replace("-","")
+            found_policy = True
 
             # Add zero to certain policy numbers - user requirement
             policy_no = policy_no+"0"
-            has_policy = True
 
         # check to see if the policy is a new policy
-        if not has_policy:
+        if not found_policy:
             for match in policyNo_findr_old.finditer(output_text):
                 policy_no = match.group(1)
-                has_policy = True
         # find the individual who is insured under the policy
         for match in insured_findr.finditer(output_text):
             name = match.group(1)
             name = name.strip().replace("-","")
             name = prepare_name(name)
-            has_name=True
 
         # CREATE FILE NAME
-        path_name = name + " " + policy_no + month + "Annual Statement.pdf"
+        path_name = name + " " + policy_no + month + year + "Annual Statement.pdf"
         save_names.append(path_name) #append to path name
     return save_names
 def init_new(path):
