@@ -29,7 +29,16 @@ def prepare_month(num):
         11:"November",
         12:"December"
     }
-    return month_dict.get(num, "MONTH ")
+    # Pragmatic Programmer recommends exceptions being reserved for unexpected events
+    # This would not be a good place to include exception handling because the subroutines that are
+    # calling this function are all being controlled internally, therefore, the inputs should be under the
+    # contract of integer values between 1 and 12. However, I included conditions in the unlikely event that
+    # another type is passed through by using a default value, and accounting for invalid keys
+    if num == None or type(num) != int:
+        return "MONTH "
+    else:
+        return month_dict.get(num, "MONTH ")
+
 
 def prepare_name(name):
     '''
@@ -208,7 +217,37 @@ def file_name_generator_old(filepath):
         path_name = name + " " + policy_no + month + year + "Annual Statement.pdf"
         save_names.append(path_name) #append to path name
     return save_names
-def init_new(path):
+
+def generate_save_location(is_test):
+    '''
+    preconditions: User has a filepath to their Desktop which is named "Desktop" and is using the Windows Operating System
+    postconditions: filepath to folder exists
+
+    This subroutine first generates the filepath of the desktop, then generates a filepath to store folders. If the folder
+    does not exist then it is created, so that the extracted pages can be stored there
+
+    :param is_test: Boolean Value of to determine if the extracted folders should end up in the testing environment
+    folder (default value is false)
+    :return: str value of the filepath to which the files should be written
+    '''
+    # Get file path of desktop - extract to folder
+    desktop = os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop')
+
+    # manual override of save location here
+    # save_location = "C:\\Users\\jmper\\Desktop\\Extracted Pages\\"
+
+    # If this is a testing environment, the save location will create a testing environment folder
+    if is_test:
+        save_location = desktop + "\\Extracted Pages Testing Environment\\"
+    else:
+        save_location = desktop + "\\Extracted Pages\\"
+
+    if not os.path.exists(save_location):
+        os.makedirs(save_location)
+
+    return save_location
+
+def init_new(path, is_test=False):
     '''
     Initializes the pdf processor: takes in the path of the original file, calls the new_file_name_generator() helper
     method in order to determine new file names. Splits the pdf document by each page and saves them
@@ -223,17 +262,8 @@ def init_new(path):
     # exit condition - unable to determine page count
     pages = 2
 
-
-    # Get file path of desktop - extract to folder
-    desktop = os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop')
-    save_location = desktop+"\\Extracted Pages\\"
-
-    # manual override of save location here
-    # save_location = "C:\\Users\\jmper\\Desktop\\Extracted Pages\\"
-
-    if not os.path.exists(save_location):
-        os.makedirs(save_location)
-
+    # Generates location of save location for extracted files
+    save_location = generate_save_location(is_test)
 
     # splits by page and saves the files to location
     pdf = PdfFileReader(path, strict=False)
@@ -253,7 +283,7 @@ def init_new(path):
                 pdf_writer.write(out)
 
 
-def init_old(path):
+def init_old(path, is_test=False):
     '''
         Initializes the pdf processor: takes in the path of the original file, calls the new_file_name_generator() helper
         method in order to determine new file names. Splits the pdf document by each page and saves them
@@ -271,18 +301,8 @@ def init_old(path):
     # splits by page and saves the files to location
     pdf = PdfFileReader(path, strict=False)
 
-    #### Edit Save Location Here ####
-
-    # Get file path of desktop - extract to folder
-    desktop = os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop')
-    save_location = desktop+"\\Extracted Pages\\"
-
-    # manual override of save location here
-    # save_location = "C:\\Users\\jmper\\Desktop\\Extracted Pages\\"
-
-    # create folder if the path doesn't exist
-    if not os.path.exists(save_location):
-        os.makedirs(save_location)
+    # Generates Save Location for Files
+    save_location = generate_save_location(is_test)
 
     for page in range(0, pdf.getNumPages(), pages):
         if (page != "NONE"):
@@ -305,4 +325,5 @@ pytesseract.pytesseract.tesseract_cmd =  r"C:\Program Files\Tesseract-OCR\tesser
 # init_old("C:\\Users\\jmper\\Documents\\Scans\\2019-11-26_103051.pdf")
 # init_old("test2.pdf")
 # print("--- %s seconds ---" % (time.time() - start_time))
-
+names = file_name_generator_old("test_old_single.pdf")
+print(names)
