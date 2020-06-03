@@ -3,6 +3,7 @@ import unittest
 import process_pdf
 import regular_expressions
 import ido_reader
+import math
 import os
 
 # TODO : Add test cases for Annual.pdf and Annual161.pdf for testing all results
@@ -28,13 +29,22 @@ class test_regex(unittest.TestCase):
     def test_prepare_month_string(self):
         self.assertEqual("MONTH", regular_expressions.Report("TEST").prepare_month("test"), msg="Process PDF - Incorrect Error Handling when Input is string")
     def test_prepare_month_large(self):
-        self.assertEqual("MONTH", regular_expressions.Report("TEST").prepare_month(13), msg="Process PDF - Incorrect Error Handling when Input is greater than 12")
-        self.assertEqual("MONTH", regular_expressions.Report("TEST").prepare_month(10000), msg="Process PDF - Incorrect Error Handling when Input is greater than 12")
-
+        self.assertEqual(regular_expressions.Report("TEST").prepare_month(13),"MONTH", msg="Process PDF - Incorrect Error Handling when Input is greater than 12")
+        self.assertEqual(regular_expressions.Report("TEST").prepare_month(float("inf")), "MONTH", msg="Prepare Month - max 64 bit floating point integer")
+        self.assertEqual(regular_expressions.Report("TEST").prepare_month(10000),"MONTH",  msg="Process PDF - Incorrect Error Handling when Input is greater than 12")
     def test_prepare_month_type(self):
         self.assertEqual("MONTH", process_pdf.regular_expressions.Report("TEST").prepare_month([]), msg="Process PDF - Incorrect Error Handling when Input is unexpected type")
     def test_prepare_month_null(self):
         self.assertEqual("MONTH", process_pdf.regular_expressions.Report("TEST").prepare_month(None), msg="Process PDF - Incorrect Error Handling of Null Type")
+    def test_ido_date_findr(self):
+        self.assertRegex(regular_expressions.ido_regex().get_date_findr(), "08/06/2020")
+        self.assertNotRegex(regular_expressions.ido_regex().get_date_findr(), "08/06/20")
+    def test_ido_name_findr(self):
+        self.assertRegex(regular_expressions.ido_regex().get_name_findr(), "Dear Bob Jones,")
+        self.assertNotRegex(regular_expressions.ido_regex().get_name_findr(), "There is no name in this text, other than the beneficiary Cindy Jones")
+    def test_ido_policyNo_findr(self):
+        self.assertRegex(regular_expressions.ido_regex().get_policy_findr(), "Policy Number: 12034605")
+        self.assertNotRegex(regular_expressions.ido_regex().get_policy_findr(), "Policy Number: 1234Q2134")
 
 
 
