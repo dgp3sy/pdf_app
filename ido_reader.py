@@ -4,44 +4,17 @@ from pdf2image import convert_from_path
 from PyPDF2 import PdfFileReader, PdfFileWriter
 from joblib import Parallel, delayed
 from PIL import Image
-import process_pdf
+import regular_expressions
 import time
 import re
 import os
 
-def prepare_month(num):
-    '''
-    Converts integers to string value of month using dictionary
-    :param num: (int) Integer value of month, expected values: 1-12
-    :return: (str) String value that corresponds to that integer's month
-    '''
-    month_dict = {
-        1:"January",
-        2:"February",
-        3:"March",
-        4:"April",
-        5:"May",
-        6:"June",
-        7:"July",
-        8:"August",
-        9:"September",
-        10:"October",
-        11:"November",
-        12:"December"
-    }
-    if num == None or type(num) != int:
-        return "MONTH "
-    else:
-        return month_dict.get(num, "MONTH ")
+
 def ido_name_generator(filepath):
     '''
     :param filepath: location of the document
     :return: list of strings of the filenames
     '''
-    date_findr = re.compile(r"Anniversary Date: ([0-9]{2})/([0-9]{2})/([0-9]{4})")
-    policy_no_findr = re.compile(r"Policy Number: ([0-9]*)")
-    name_findr = re.compile(r"Dear ([A-Za-z ]*),")
-
     pages = convert_from_path(filepath)
     output_text = ""
     count = 0
@@ -64,27 +37,14 @@ def ido_name_generator(filepath):
     for i in range(len(doc_text_split)):
         output_text = doc_text_split[i]
 
-        # placeholder for new file name values
-        month = "MONTH "
-        year = "YEAR "
-        policy_no = "POLICY_NO "
-        name = "NAME"
-
-        for match in date_findr.finditer(output_text):
-            month = match.group(1)
-            month = prepare_month(int(month))+" "
-            year = match.group(3)+" "
-        # set the policy number based on regex established
-        for match in policy_no_findr.finditer(output_text):
-            policy_no = match.group(1)
-            policy_no = policy_no.replace("-", "")+" "
-
-        for match in name_findr.finditer(output_text):
-            name = match.group(1).strip()
-            name = process_pdf.prepare_name(name)
+        regex_buildr = regular_expressions.ido_regex()
+        name = regex_buildr.find_name(output_text)+" "
+        policy_no = regex_buildr.find_policyNo(output_text)+" "
+        month = regex_buildr.find_month(output_text)+" "
+        year = regex_buildr.find_year(output_text)+" "
 
         # CREATE FILE NAME
-        path_name = name + " " + policy_no + month + year + "IDO Letter.pdf"
+        path_name = name + policy_no + month + year + "IDO Letter.pdf"
         doc_names.append(path_name)  # append to path name
     return doc_names
 
@@ -146,3 +106,4 @@ def init_ido_reader(path, is_test=False):
             with open(save_location + output_filename, 'wb') as out:
                 pdf_writer.write(out)
 
+print(ido_name_generator("IDO Letter.pdf"))

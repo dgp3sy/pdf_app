@@ -3,64 +3,9 @@ from pytesseract import image_to_string
 from pdf2image import convert_from_path
 from PyPDF2 import PdfFileReader, PdfFileWriter
 from PIL import Image
-import ido_reader
+import regular_expressions
 import time
-import re
 import os
-
-
-def prepare_month(num):
-    '''
-    Converts integers to string value of month using dictionary
-    :param num: (int) Integer value of month, expected values: 1-12
-    :return: (str) String value that corresponds to that integer's month
-    '''
-    month_dict = {
-        1:"January",
-        2:"February",
-        3:"March",
-        4:"April",
-        5:"May",
-        6:"June",
-        7:"July",
-        8:"August",
-        9:"September",
-        10:"October",
-        11:"November",
-        12:"December"
-    }
-    # Pragmatic Programmer recommends exceptions being reserved for unexpected events
-    # This would not be a good place to include exception handling because the subroutines that are
-    # calling this function are all being controlled internally, therefore, the inputs should be under the
-    # contract of integer values between 1 and 12. However, I included conditions in the unlikely event that
-    # another type is passed through by using a default value, and accounting for invalid keys
-    if num == None or type(num) != int:
-        return "MONTH "
-    else:
-        return month_dict.get(num, "MONTH ")
-
-
-def prepare_name(name):
-    '''
-    Helper function for the process_pdf function that takes in a name with possible middle initial or middle name
-    and returns the name in the format: last name, first name. This will be later used to create the file path for the
-    new pdf document
-    :param name: string, name in the format: first name (possible middle name) last name
-    :return: name: string, in the format: last name, first name
-    '''
-    middle_name = False
-    if name.count(' ') == 2:
-        middle_name = True
-    if middle_name:
-        l = name.rfind(' ')
-        f = name.find(' ')
-        first_name = name[:f]
-        last_name = name[l+1:]
-    else:
-        n = name.find(' ')
-        first_name = name[:n]
-        last_name = name[n+1:]
-    return last_name+ ", " + first_name
 
 def file_name_generator_new(filepath):
     '''
@@ -71,14 +16,8 @@ def file_name_generator_new(filepath):
     :param filepath: path of the original pdf document - containing multiple annual reports
     :return: list of the valid save names of all reports in that document
     '''
-    # month_findr = re.compile(r"(January | February | March | April | May | June | July | August | September | October | November | December)")
-    date_findr = re.compile(r"through ([0-9]{2})/([0-9]{2})/([0-9]{4})")
-    insured_findr = re.compile(r"Dean E Harder ([A-Za-z ]*)")
-    insured_findr2 = re.compile(r"Dear ([A-Za-z ]*),")
-    policyNo_findr_new = re.compile(r"(07[1|2][0-9]{7})")
 
     save_names = []
-
     # Split entire pdf document into its own page and analyze text
     pages = convert_from_path(filepath)
     output_text = ""
@@ -96,51 +35,18 @@ def file_name_generator_new(filepath):
             output_text_list.append(output_text)
             output_text = ""
             count = 0
+
     # extract information from each policy owner's form
     for text in output_text_list:
-        # boolean flags to determine if item has been properly found in OCR string
-        found_name = False
-        found_policy = False
-
-        # placeholder for new file name values
-        month = "MONTH "
-        year = "YEAR "
-        policy_no = "POLICY_NO "
-        name = "NAME"
         # set the month based on the regex established
-        for match in date_findr.finditer(text):
-            month_num = int(match.group(1))
-            month = prepare_month(month_num)+" "
-            year = match.group(3)+" "
+        reg_builder = regular_expressions.new_annual_regex()
+        month = reg_builder.find_month(text)+" "
+        year = reg_builder.find_year(text)+" "
+        policy_no = reg_builder.find_policyNo(text)+" "
+        name = reg_builder.find_name(text)+" "
 
-        # set the policy number based on regex established
-        for match in policyNo_findr_new.finditer(text):
-            policy_no = match.group(1)
-            policy_no = policy_no.replace("-", "")
-
-            # Add zero to certain policy numbers - user requirement
-            policy_no = policy_no + " "
-            found_policy = True
-
-        # check to see if the policy is a new policy
-        if not found_policy:
-            for match in policyNo_findr_new.finditer(text):
-                policy_no = match.group(1)
-                found_policy = True
-
-        # find the individual who is insured under the policy
-        for match in insured_findr.finditer(text):
-            name = match.group(1)
-            name = name.strip().replace("-", "")
-            name = prepare_name(name)
-            found_name = True
-        if not found_name:
-            for match in insured_findr2.finditer(text):
-                name = match.group(1)
-                name = prepare_name(name)
-                found_name = True
         # CREATE FILE NAME
-        path_name = name + " " + policy_no + month + year + "Annual Statement.pdf"
+        path_name = name + policy_no + month + year + "Annual Statement.pdf"
         save_names.append(path_name)  # append to path name
     return save_names
 
@@ -154,15 +60,6 @@ def file_name_generator_old(filepath):
     :return: list of the valid save names of all reports in that document
     '''
 
-    # Defines Regular Expressions for finding following information
-    month_findr = re.compile(r"(January | February | March | April | May | June | July | August | September | October | November | December)")
-    year_findr = re.compile(r"through [A-Za-z ]*[0-9]*, ([0-9]{4})")
-    policyNo_findr_old = re.compile(r"Policy No\. ([0-9/-]*)")
-    insured_findr = re.compile(r"which insures ([A-Za-z ]*)")
-
-    # name_findr = re.compile(r"Policyowner(.*?)(\n*?)DEAN E HARDER ([A-Z _]*)")
-    # name_findr2 = re.compile(r"Policyholder:\n[A-Za-z ]*[0-9]*([A-Za-z ]*)")
-
     # Initiates list to Store save names of each individual page
     save_names = []
 
@@ -171,52 +68,23 @@ def file_name_generator_old(filepath):
     for page in pages:
         print("Processing Page", page, "...")
 
-
         # save a jpeg to allow for easier OCR (optimal character recognition)
         page.save('out.jgp', 'JPEG')
         jpg_open = Image.open('out.jgp')
         output_text = image_to_string(jpg_open, lang='eng') # output OCR to string
 
-        # boolean flags for finding information
-        found_policy = False
-
-        # placeholder for new file name values
-        month="MONTH "
-        year = "YEAR "
-        policy_no="POLICY_NO "
-        name="NAME"
-
-        # set the month based on the regex established
-        for match in month_findr.finditer(output_text):
-            month = match.group(1)
-
-        # find the year
-        for match in year_findr.finditer(output_text):
-            year = match.group(1)+" "
-
-        # set the policy number based on regex established
-        for match in policyNo_findr_old.finditer(output_text):
-            policy_no = match.group(1)
-            policy_no = policy_no.replace("-","")
-            found_policy = True
-
-            # Add zero to certain policy numbers - user requirement
-            policy_no = policy_no+"0"
-
-        # check to see if the policy is a new policy
-        if not found_policy:
-            for match in policyNo_findr_old.finditer(output_text):
-                policy_no = match.group(1)
-        # find the individual who is insured under the policy
-        for match in insured_findr.finditer(output_text):
-            name = match.group(1)
-            name = name.strip().replace("-","")
-            name = prepare_name(name)
+        regex_buildr = regular_expressions.old_annual_regex()
+        month = regex_buildr.find_month(output_text)+" "
+        year = regex_buildr.find_year(output_text)+" "
+        policy_no = regex_buildr.find_policyNo(output_text)+" "
+        name = regex_buildr.find_name(output_text)+" "
 
         # CREATE FILE NAME
-        path_name = name + " " + policy_no + month + year + "Annual Statement.pdf"
+        path_name = name + policy_no + month + year + "Annual Statement.pdf"
         save_names.append(path_name) #append to path name
     return save_names
+
+
 
 def generate_save_location(is_test):
     '''
@@ -275,13 +143,12 @@ def init_new(path, is_test=False):
 
 
             # select appropriate file name based on the generator
-            output_filename = file_names[page]
+            output_filename = file_names[page//pages]
 
             # TODO: save to a user defined location
             # saves the file to the appropriate destination
             with open(save_location+output_filename, 'wb') as out:
                 pdf_writer.write(out)
-
 
 def init_old(path, is_test=False):
     '''
@@ -325,5 +192,5 @@ pytesseract.pytesseract.tesseract_cmd =  r"C:\Program Files\Tesseract-OCR\tesser
 # init_old("C:\\Users\\jmper\\Documents\\Scans\\2019-11-26_103051.pdf")
 # init_old("test2.pdf")
 # print("--- %s seconds ---" % (time.time() - start_time))
-names = file_name_generator_old("test_old_single.pdf")
-print(names)
+
+

@@ -1,13 +1,62 @@
 import shutil
 import unittest
 import process_pdf
+import regular_expressions
 import ido_reader
 import os
 
-class Test_New_Annual_Report(unittest.TestCase):
+# TODO : Add test cases for Annual.pdf and Annual161.pdf for testing all results
+# TODO : Add test cases for test_new_single.pdf
+# TODO : Add test cases for test_old_single.pdf
+
+class test_regex(unittest.TestCase):
+    def test_prepare_name(self):
+        self.assertEqual("Jones, Bob", regular_expressions.Report("TEST").prepare_name("Bob Jones"), msg="Name Preparation Error: First Name and Surname")
+    def test_prepare_name_middle(self):
+        self.assertEqual("Jones, Bob", regular_expressions.Report("TEST").prepare_name("Bob Robert Jones"), msg="Name Preparation Error: Middle Name")
+    def test_prepare_name_middle_initial(self):
+        self.assertEqual("Jones, Bob", regular_expressions.Report("TEST").prepare_name("Bob R. Jones"), msg="Name Preparation Error: Middle Initial")
+    def test_prepare_name_middle_initial2(self):
+        self.assertEqual("Jones, Bob", regular_expressions.Report("TEST").prepare_name("Bob R Jones"), msg="Name Preparation Error: Middle Initial")
+    def test_prepare_month(self):
+        self.assertEqual("January", regular_expressions.Report("TEST").prepare_month(1), msg="Process PDF - Prepare Month Incorrect Return Value on Month 1")
+    def test_prepare_month_zero(self):
+        self.assertEqual("MONTH", regular_expressions.Report("TEST").prepare_month(0), msg="Process PDF - Incorrect Error Handling when Input is 0")
+    def test_prepare_month_negative(self):
+        self.assertEqual("MONTH", regular_expressions.Report("TEST").prepare_month(-1), msg="Process PDF - Incorrect Error Handling when Input is -1")
+        self.assertEqual("MONTH", regular_expressions.Report("TEST").prepare_month(-10000), msg="Process PDF - Incorrect Error Handling when Input is -1")
+    def test_prepare_month_string(self):
+        self.assertEqual("MONTH", regular_expressions.Report("TEST").prepare_month("test"), msg="Process PDF - Incorrect Error Handling when Input is string")
+    def test_prepare_month_large(self):
+        self.assertEqual("MONTH", regular_expressions.Report("TEST").prepare_month(13), msg="Process PDF - Incorrect Error Handling when Input is greater than 12")
+        self.assertEqual("MONTH", regular_expressions.Report("TEST").prepare_month(10000), msg="Process PDF - Incorrect Error Handling when Input is greater than 12")
+
+    def test_prepare_month_type(self):
+        self.assertEqual("MONTH", process_pdf.regular_expressions.Report("TEST").prepare_month([]), msg="Process PDF - Incorrect Error Handling when Input is unexpected type")
+    def test_prepare_month_null(self):
+        self.assertEqual("MONTH", process_pdf.regular_expressions.Report("TEST").prepare_month(None), msg="Process PDF - Incorrect Error Handling of Null Type")
+
+
+
+class Test_New_Annual_Report_Single(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.names = process_pdf.file_name_generator_new("test_new_single.pdf")
+        cls.folder_path=os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop') +"\\Extracted Pages Testing Environment\\"
+        process_pdf.init_new("test_new_single.pdf", is_test=True)
+    @classmethod
+    def tearDownClass(cls):
+        shutil.rmtree(cls.folder_path)
+    def test_name_generator_val(self):
+        self.assertEqual('Davison, James 0720004830 June 2019 Annual Statement.pdf',self.names[0],
+                         msg="Annual Report (New) Error: Incorrect File Name Generated")
+    def test_num_names(self):
+        self.assertEqual(1, len(self.names), msg="Annual Report (New) Error: Incorrect Number of Files Generated")
+    # TODO : MORE TEST CASES
+class Test_New_Annual_Report(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.names = process_pdf.file_name_generator_new("Annual.pdf")
         cls.folder_path = os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop') + "\\Extracted Pages Testing Environment\\"
         process_pdf.init_new("Annual.pdf", is_test=True)# Call Subroutine
     @classmethod
@@ -17,40 +66,15 @@ class Test_New_Annual_Report(unittest.TestCase):
 
     def test_name_generator_type(self):
         self.assertEqual(type(self.names), type([]), msg="Annual Report (New) Error: Wrong Return Type on Name Generator")
-    def test_name_generator_num(self):
-        self.assertLess(len(self.names), 2, msg="Annual Report (New) Error: Name Generator List Too Long")
-    def test_name_generator_upper(self):
-        self.assertGreater(len(self.names), 0, msg="Annual Report (New) Error: Name Generator List Too Short")
     def test_name_generator_lower(self):
-        self.assertEqual(len(self.names), 1, msg="Annual Report (New) Error: Name Generator List Not Correct Length")
+        self.assertLess(len(self.names), 11, msg="Annual Report (New) Error: Name Generator List Too Long")
+    def test_name_generator_upper(self):
+        self.assertGreater(len(self.names), 9, msg="Annual Report (New) Error: Name Generator List Too Short")
+    def test_name_generator_num(self):
+        self.assertEqual(len(self.names), 10, msg="Annual Report (New) Error: Name Generator List Not Correct Length")
     def test_name_generator_val(self):
-        self.assertEqual(self.names[0], 'Davison, James 0720004830 June 2019 Annual Statement.pdf',
+        self.assertEqual('Oleson, Gregory 0720212570 May 2019 Annual Statement.pdf', self.names[0],
                          msg="Annual Report (New) Error: Incorrect File Name Generated")
-    def test_prepare_name(self):
-        self.assertEqual("Jones, Bob", process_pdf.prepare_name("Bob Jones"), msg="Name Preparation Error: First Name and Surname")
-    def test_prepare_name_middle(self):
-        self.assertEqual("Jones, Bob", process_pdf.prepare_name("Bob Robert Jones"), msg="Name Preparation Error: Middle Name")
-    def test_prepare_name_middle_initial(self):
-        self.assertEqual("Jones, Bob", process_pdf.prepare_name("Bob R. Jones"), msg="Name Preparation Error: Middle Initial")
-    def test_prepare_name_middle_initial2(self):
-        self.assertEqual("Jones, Bob", process_pdf.prepare_name("Bob R Jones"), msg="Name Preparation Error: Middle Initial")
-    def test_prepare_month(self):
-        self.assertEqual("January", process_pdf.prepare_month(1), msg="Process PDF - Prepare Month Incorrect Return Value on Month 1")
-    def test_prepare_month_zero(self):
-        self.assertEqual("MONTH ", process_pdf.prepare_month(0), msg="Process PDF - Incorrect Error Handling when Input is 0")
-    def test_prepare_month_negative(self):
-        self.assertEqual("MONTH ", process_pdf.prepare_month(-1), msg="Process PDF - Incorrect Error Handling when Input is -1")
-        self.assertEqual("MONTH ", process_pdf.prepare_month(-10000), msg="Process PDF - Incorrect Error Handling when Input is -1")
-    def test_prepare_month_string(self):
-        self.assertEqual("MONTH ", process_pdf.prepare_month("test"), msg="Process PDF - Incorrect Error Handling when Input is string")
-    def test_prepare_month_large(self):
-        self.assertEqual("MONTH ", process_pdf.prepare_month(13), msg="Process PDF - Incorrect Error Handling when Input is greater than 12")
-        self.assertEqual("MONTH ", process_pdf.prepare_month(10000), msg="Process PDF - Incorrect Error Handling when Input is greater than 12")
-
-    def test_prepare_month_type(self):
-        self.assertEqual("MONTH ", process_pdf.prepare_month([]), msg="Process PDF - Incorrect Error Handling when Input is unexpected type")
-    def test_prepare_month_null(self):
-        self.assertEqual("MONTH ", process_pdf.prepare_month(None), msg="Process PDF - Incorrect Error Handling of Null Type")
 
 
 class Test_Old_Annual_Report(unittest.TestCase):
@@ -109,23 +133,6 @@ class Test_IDO_Letter(unittest.TestCase):
     def test_name_generator_value(self):
         self.assertEqual(self.names[0], 'STEELE, BRENT 0720726910 June 2020 IDO Letter.pdf',
                          msg="Annual Report (Old) Error: Incorrect File Name Generated")
-    def test_prepare_month(self):
-        self.assertEqual("January", ido_reader.prepare_month(1), msg="Process PDF - Prepare Month Incorrect Return Value on Month 1")
-    def test_prepare_month_0(self):
-        self.assertEqual("MONTH ", ido_reader.prepare_month(0), msg="Process PDF - Incorrect Error Handling when Input is 0")
-    def test_prepare_month_negative(self):
-        self.assertEqual("MONTH ", ido_reader.prepare_month(-1), msg="Process PDF - Incorrect Error Handling when Input is -1")
-        self.assertEqual("MONTH ", ido_reader.prepare_month(-1000), msg="Process PDF - Incorrect Error Handling when Input is -1")
-
-    def test_prepare_month_str(self):
-        self.assertEqual("MONTH ", ido_reader.prepare_month("test"), msg="Process PDF - Incorrect Error Handling when Input is string")
-    def test_prepare_month_large(self):
-        self.assertEqual("MONTH ", ido_reader.prepare_month(13), msg="Process PDF - Incorrect Error Handling when Input is greater than 12")
-        self.assertEqual("MONTH ", ido_reader.prepare_month(1000), msg="Process PDF - Incorrect Error Handling when Input is greater than 12")
-    def test_prepare_month_list(self):
-        self.assertEqual("MONTH ", ido_reader.prepare_month([]), msg="Process PDF - Incorrect Error Handling when Input is unexpected type")
-    def test_prepare_month_null(self):
-        self.assertEqual("MONTH ", ido_reader.prepare_month(None), msg="Process PDF - Incorrect Error Handling of Null Type")
     def test_file_path_generated(self):
         self.assertTrue(os.path.exists(self.folder_path), msg="IDO Letter - Path of Save Location Never Created by generate_save_location() Subroutine")
     def test_num_files_generated(self):
