@@ -23,6 +23,10 @@ pip install PIL
 Make sure that you have poppler and Tesseract-OCR added to your PATH. I found these resources helpful in doing this:
   * [Adding Poppler to PATH](https://github.com/QISKit/qiskit-terra/issues/586)
   * [Adding Tesseract-OCR to PATH](https://stackoverflow.com/questions/50951955/pytesseract-tesseractnotfound-error-tesseract-is-not-installed-or-its-not-i/53672281)
+  
+## About the System
+A detailed flowchart of the system proccess can be found below:
+<img src="">
 
 ## Deployment
 
