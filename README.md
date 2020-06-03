@@ -26,7 +26,7 @@ Make sure that you have poppler and Tesseract-OCR added to your PATH. I found th
 
 ## Deployment
 
-This code is specific to a file structure, and uses regular expressions to search for data within that structure. If you would like to adapt this to your company's reports, pleaase contact the author
+This code is specific to a file structure, and uses regular expressions to search for data within that structure. If you would like to adapt this to your company's reports, please contact the author
 
 ## Authors
 
