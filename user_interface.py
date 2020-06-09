@@ -61,9 +61,9 @@ def call_proccess_pdf():
             #   3 = IDO Letter
             doc_type_int = doc_type.get()
             if doc_type_int == 1:
-                process_pdf.init_new(each_file)
+                process_pdf.init(each_file, is_old=False)
             elif doc_type_int == 2:
-                process_pdf.init_old(each_file)
+                process_pdf.init(each_file, is_old=True)
             elif doc_type_int == 3:
                 ido_reader.init_ido_reader(each_file)
             else:

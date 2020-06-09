@@ -7,7 +7,7 @@ import regular_expressions
 import time
 import os
 
-def file_name_generator_new(filepath):
+def file_name_generator(filepath, is_old):
     '''
     Generates file path names in the format: Last Name, First Name Policy_Number Month Annual Report.pdf
     First, this function reads the pdf, converts to jpeg format, uses optimal character recognition (OCR)
@@ -16,7 +16,10 @@ def file_name_generator_new(filepath):
     :param filepath: path of the original pdf document - containing multiple annual reports
     :return: list of the valid save names of all reports in that document
     '''
-
+    if is_old:
+        doc_len = 1
+    else:
+        doc_len = 2
     save_names = []
     # Split entire pdf document into its own page and analyze text
     pages = convert_from_path(filepath)
@@ -30,7 +33,7 @@ def file_name_generator_new(filepath):
         page.save('out.jgp', 'JPEG')
         jpg_open = Image.open('out.jgp')
         output_text += image_to_string(jpg_open, lang='eng')  # output OCR to string
-        if count == 2:
+        if count == doc_len:
             print("Processing Page", page, "...")
             output_text_list.append(output_text)
             output_text = ""
@@ -38,52 +41,25 @@ def file_name_generator_new(filepath):
 
     # extract information from each policy owner's form
     for text in output_text_list:
-        # set the month based on the regex established
-        reg_builder = regular_expressions.new_annual_regex()
-        month = reg_builder.find_month(text)+" "
-        year = reg_builder.find_year(text)+" "
-        policy_no = reg_builder.find_policyNo(text)+" "
-        name = reg_builder.find_name(text)+" "
+        if not is_old:
+            # set the month based on the New Annual Report Regex
+            reg_builder = regular_expressions.new_annual_regex()
+            month = reg_builder.find_month(text)+" "
+            year = reg_builder.find_year(text)+" "
+            policy_no = reg_builder.find_policyNo(text)+" "
+            name = reg_builder.find_name(text)+" "
+        else:
+            regex_buildr = regular_expressions.old_annual_regex()
+            month = regex_buildr.find_month(text) + " "
+            year = regex_buildr.find_year(text) + " "
+            policy_no = regex_buildr.find_policyNo(text) + " "
+            name = regex_buildr.find_name(text) + " "
+
 
         # CREATE FILE NAME
         path_name = name + policy_no + month + year + "Annual Statement.pdf"
         save_names.append(path_name)  # append to path name
     return save_names
-
-def file_name_generator_old(filepath):
-    '''
-    Generates file path names in the format: Last Name, First Name Policy_Number Month Annual Report.pdf
-    First, this function reads the pdf, converts to jpeg format, uses optimal character recognition (OCR)
-    to determine the text of the pdf document. This text is then searched using regular expressions for the
-    necessary values including name, policy number and month. The file name is comprised accordingly
-    :param filepath: path of the original pdf document - containing multiple annual reports
-    :return: list of the valid save names of all reports in that document
-    '''
-
-    # Initiates list to Store save names of each individual page
-    save_names = []
-
-    # Split entire pdf document into its own page and analyze text
-    pages = convert_from_path(filepath)
-    for page in pages:
-        print("Processing Page", page, "...")
-
-        # save a jpeg to allow for easier OCR (optimal character recognition)
-        page.save('out.jgp', 'JPEG')
-        jpg_open = Image.open('out.jgp')
-        output_text = image_to_string(jpg_open, lang='eng') # output OCR to string
-
-        regex_buildr = regular_expressions.old_annual_regex()
-        month = regex_buildr.find_month(output_text)+" "
-        year = regex_buildr.find_year(output_text)+" "
-        policy_no = regex_buildr.find_policyNo(output_text)+" "
-        name = regex_buildr.find_name(output_text)+" "
-
-        # CREATE FILE NAME
-        path_name = name + policy_no + month + year + "Annual Statement.pdf"
-        save_names.append(path_name) #append to path name
-    return save_names
-
 
 
 def generate_save_location(is_test):
@@ -115,75 +91,41 @@ def generate_save_location(is_test):
 
     return save_location
 
-def init_new(path, is_test=False):
-    '''
-    Initializes the pdf processor: takes in the path of the original file, calls the new_file_name_generator() helper
-    method in order to determine new file names. Splits the pdf document by each page and saves them
-    :param path: the file path of the original document
-    :return: none, generates n new files where n is the length of the pdf document
-    '''
-    # creates file names as per user's original requirements
-    file_names = file_name_generator_new(path)
-    fname = os.path.splitext(os.path.basename(path))[0]
-    # print(file_names)
 
-    # exit condition - unable to determine page count
-    pages = 2
-
-    # Generates location of save location for extracted files
-    save_location = generate_save_location(is_test)
-
-    # splits by page and saves the files to location
-    pdf = PdfFileReader(path, strict=False)
-    for page in range(0, pdf.getNumPages(), pages):
-        if (page != "NONE"):
-            pdf_writer = PdfFileWriter()
-            pdf_writer.addPage(pdf.getPage(page))
-            pdf_writer.addPage(pdf.getPage(page+1))
-
-
-            # select appropriate file name based on the generator
-            output_filename = file_names[page//pages]
-
-            # TODO: save to a user defined location
-            # saves the file to the appropriate destination
-            with open(save_location+output_filename, 'wb') as out:
-                pdf_writer.write(out)
-
-def init_old(path, is_test=False):
+def init(path, is_old, is_test=False):
     '''
         Initializes the pdf processor: takes in the path of the original file, calls the new_file_name_generator() helper
         method in order to determine new file names. Splits the pdf document by each page and saves them
         :param path: the file path of the original document
         :return: none, generates n new files where n is the length of the pdf document
         '''
-    # creates file names as per user's original requirements
-    file_names = file_name_generator_old(path)
-    fname = os.path.splitext(os.path.basename(path))[0]
-    # print(file_names)
+    if is_old:
+        # creates file names as per user's original requirements
+        file_names = file_name_generator(path, is_old)
+        pages = 1
 
-    # exit condition - unable to determine page count
-    pages = 1
-
-    # splits by page and saves the files to location
-    pdf = PdfFileReader(path, strict=False)
+    else:
+        file_names = file_name_generator(path, is_old)
+        pages = 2
 
     # Generates Save Location for Files
     save_location = generate_save_location(is_test)
 
+    # splits by page and saves the files to location
+    pdf = PdfFileReader(path, strict=False)
     for page in range(0, pdf.getNumPages(), pages):
         if (page != "NONE"):
             pdf_writer = PdfFileWriter()
             pdf_writer.addPage(pdf.getPage(page))
 
             # select appropriate file name based on the generator
-            output_filename = file_names[page]
+            output_filename = file_names[page//pages]
 
             # saves the file to the appropriate destination
             with open(save_location+output_filename, 'wb') as out:
                 pdf_writer.write(out)
 
-
+init("Annual161.pdf", is_old=True, is_test=True)
 
 
 pytesseract.pytesseract.tesseract_cmd =  r"C:\Program Files\Tesseract-OCR\tesseract.exe"
