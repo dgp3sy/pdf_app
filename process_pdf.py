@@ -27,7 +27,7 @@ def file_name_generator(filepath, file_type):
         3 : Term Life Annual Report
     :return: list of the valid save names of all reports in that document
     '''
-    if file_type == repr(doc_enum.OLD.value):
+    if file_type == doc_enum.OLD.value:
         doc_len = 1
     else:
         doc_len = 2
