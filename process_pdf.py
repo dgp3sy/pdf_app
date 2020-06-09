@@ -4,19 +4,30 @@ from pdf2image import convert_from_path
 from PyPDF2 import PdfFileReader, PdfFileWriter
 from PIL import Image
 import regular_expressions
+from doc_num import doc_enum
 import time
 import os
+def search_document(regex_buildr, text):
+    month = regex_buildr.find_month(text) + " "
+    year = regex_buildr.find_year(text) + " "
+    policy_no = regex_buildr.find_policyNo(text) + " "
+    name = regex_buildr.find_name(text) + " "
 
-def file_name_generator(filepath, is_old):
+    return month, year, policy_no, name
+def file_name_generator(filepath, file_type):
     '''
     Generates file path names in the format: Last Name, First Name Policy_Number Month Annual Report.pdf
     First, this function reads the pdf, converts to jpeg format, uses optimal character recognition (OCR)
     to determine the text of the pdf document. This text is then searched using regular expressions for the
     necessary values including name, policy number and month. The file name is comprised accordingly
     :param filepath: path of the original pdf document - containing multiple annual reports
+    :param file_type: integer value mapping to the type of file you are attempting to proccess
+        1 : Old Annual Report Format
+        2 : New Annual Report Format
+        3 : Term Life Annual Report
     :return: list of the valid save names of all reports in that document
     '''
-    if is_old:
+    if file_type == repr(doc_enum.OLD.value):
         doc_len = 1
     else:
         doc_len = 2
@@ -39,24 +50,20 @@ def file_name_generator(filepath, is_old):
             output_text = ""
             count = 0
 
+
     # extract information from each policy owner's form
     for text in output_text_list:
-        if not is_old:
+        if file_type == doc_enum.OLD.value:
             # set the month based on the New Annual Report Regex
+            reg_builder = regular_expressions.old_annual_regex()
+        elif file_type == doc_enum.NEW.value:
             reg_builder = regular_expressions.new_annual_regex()
-            month = reg_builder.find_month(text)+" "
-            year = reg_builder.find_year(text)+" "
-            policy_no = reg_builder.find_policyNo(text)+" "
-            name = reg_builder.find_name(text)+" "
         else:
-            regex_buildr = regular_expressions.old_annual_regex()
-            month = regex_buildr.find_month(text) + " "
-            year = regex_buildr.find_year(text) + " "
-            policy_no = regex_buildr.find_policyNo(text) + " "
-            name = regex_buildr.find_name(text) + " "
+            reg_builder = regular_expressions.term_regex()
 
 
         # CREATE FILE NAME
+        month, year, policy_no, name = search_document(reg_builder, text)
         path_name = name + policy_no + month + year + "Annual Statement.pdf"
         save_names.append(path_name)  # append to path name
     return save_names
@@ -92,20 +99,22 @@ def generate_save_location(is_test):
     return save_location
 
 
-def init(path, is_old, is_test=False):
+def init(path, doc_type, is_test=False):
     '''
         Initializes the pdf processor: takes in the path of the original file, calls the new_file_name_generator() helper
         method in order to determine new file names. Splits the pdf document by each page and saves them
         :param path: the file path of the original document
         :return: none, generates n new files where n is the length of the pdf document
         '''
-    if is_old:
+    if doc_type == doc_enum.OLD.value:
         # creates file names as per user's original requirements
-        file_names = file_name_generator(path, is_old)
+        file_names = file_name_generator(path, doc_type)
         pages = 1
-
+    elif doc_type == doc_enum.NEW.value:
+        file_names = file_name_generator(path, doc_type)
+        pages = 2
     else:
-        file_names = file_name_generator(path, is_old)
+        file_names = file_name_generator(path, doc_type)
         pages = 2
 
     # Generates Save Location for Files
@@ -125,7 +134,6 @@ def init(path, is_old, is_test=False):
             with open(save_location+output_filename, 'wb') as out:
                 pdf_writer.write(out)
 
-init("Annual161.pdf", is_old=True, is_test=True)
 
 
 pytesseract.pytesseract.tesseract_cmd =  r"C:\Program Files\Tesseract-OCR\tesseract.exe"

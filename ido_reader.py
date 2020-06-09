@@ -106,4 +106,3 @@ def init_ido_reader(path, is_test=False):
             with open(save_location + output_filename, 'wb') as out:
                 pdf_writer.write(out)
 
-print(ido_name_generator("IDO Letter.pdf"))

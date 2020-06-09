@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import filedialog as fd
 import process_pdf
 import ido_reader
+from doc_num import doc_enum
 import time
 
 
@@ -60,13 +61,13 @@ def call_proccess_pdf():
             #   2 = Old Annual Report
             #   3 = IDO Letter
             doc_type_int = doc_type.get()
-            if doc_type_int == 1:
-                process_pdf.init(each_file, doc_type=1)
-            elif doc_type_int == 2:
-                process_pdf.init(each_file, doc_type=2)
-            elif doc_type == 3:
-                process_pdf.init(each_file, doc_type=3)
-            elif doc_type_int == 4:
+            if doc_type_int == doc_enum.OLD.value:
+                process_pdf.init(each_file, doc_type=doc_enum.OLD.value)
+            elif doc_type_int == doc_enum.NEW.value:
+                process_pdf.init(each_file, doc_type=doc_enum.NEW.value)
+            elif doc_type == doc_enum.TERM.value:
+                process_pdf.init(each_file, doc_type=doc_enum.TERM.value)
+            elif doc_type_int == doc_enum.IDO.value:
                 ido_reader.init_ido_reader(each_file)
 
             else:
@@ -102,14 +103,14 @@ file_browser = Browse(root, initialdir=r"C:\Users", filetypes=filetypes)
 submit_button = tk.Button(root, text="Submit", command=call_proccess_pdf)
 # Determines the type of document with radio buttons
 doc_type = tk.IntVar()
-is_new = tk.Radiobutton(root, text="New Annual Report",
-                          padx = 20, variable = doc_type,value = 1)
 is_old = tk.Radiobutton(root, text="Old Annual Report",
-                        padx = 20, variable = doc_type, value = 2)
+                        padx = 20, variable = doc_type, value = doc_enum.OLD.value)
+is_new = tk.Radiobutton(root, text="New Annual Report",
+                          padx = 20, variable = doc_type,value = doc_enum.NEW.value)
 is_term = tk.Radiobutton(root, text="Term Life Annual Report",
-                         padx = 20, variable = doc_type, value = 3)
+                         padx = 20, variable = doc_type, value = doc_enum.TERM.value)
 is_IDO = tk.Radiobutton(root, text="IDO Letter",
-                        padx = 20, variable = doc_type, value = 4)
+                        padx = 20, variable = doc_type, value = doc_enum.IDO.value)
 # TODO: Selection of the specific file path rather than the root directory of this code
 
 # Displays UI to the screen

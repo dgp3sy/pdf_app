@@ -91,7 +91,41 @@ class new_annual_regex(Report):
         return "NAME"
 
 
+class term_regex(Report):
+    def __init__(self):
+        Report.__init__(self, "Term Life Annual Report")
+        self.__date_findr = re.compile(r"Statement Date: ([A-Za-z]*) ([0-9]*), ([0-9]{4})")
+        self.__policyNo_findr = re.compile(r"(062[0-9]{7})")
+        self.__insured_findr = re.compile(r"Dean E Harder ([A-Za-z ]*)")
 
+    def get_date_finr(self):
+        return self.__date_findr
+    def get_policy_findr(self):
+        return self.__policyNo_findr
+    def get_name_findr(self):
+        return self.__insured_findr
+
+    def find_month(self, text):
+        for match in self.__date_findr.finditer(text):
+            return match.group(1)
+        return "MONTH "
+
+    def find_year(self, text):
+
+        for match in self.__date_findr.finditer(text):
+            return match.group(3)
+        return "YEAR"
+
+    def find_policyNo(self, text):
+        for match in self.__policyNo_findr.finditer(text):
+            policy_no = match.group(1)
+            return policy_no
+        return "POLICY_NO"
+
+    def find_name(self, text):
+        for match in self.__insured_findr.finditer(text):
+            return self.prepare_name(match.group(1))
+        return "NAME "
 
 
 class old_annual_regex(Report):
