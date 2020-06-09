@@ -61,11 +61,14 @@ def call_proccess_pdf():
             #   3 = IDO Letter
             doc_type_int = doc_type.get()
             if doc_type_int == 1:
-                process_pdf.init(each_file, is_old=False)
+                process_pdf.init(each_file, doc_type=1)
             elif doc_type_int == 2:
-                process_pdf.init(each_file, is_old=True)
-            elif doc_type_int == 3:
+                process_pdf.init(each_file, doc_type=2)
+            elif doc_type == 3:
+                process_pdf.init(each_file, doc_type=3)
+            elif doc_type_int == 4:
                 ido_reader.init_ido_reader(each_file)
+
             else:
                 raise
         except:
@@ -103,8 +106,10 @@ is_new = tk.Radiobutton(root, text="New Annual Report",
                           padx = 20, variable = doc_type,value = 1)
 is_old = tk.Radiobutton(root, text="Old Annual Report",
                         padx = 20, variable = doc_type, value = 2)
+is_term = tk.Radiobutton(root, text="Term Life Annual Report",
+                         padx = 20, variable = doc_type, value = 3)
 is_IDO = tk.Radiobutton(root, text="IDO Letter",
-                        padx = 20, variable = doc_type, value = 3)
+                        padx = 20, variable = doc_type, value = 4)
 # TODO: Selection of the specific file path rather than the root directory of this code
 
 # Displays UI to the screen
@@ -112,6 +117,7 @@ select_file_label.pack()
 file_browser.pack(fill='x', expand=True)
 is_new.pack()
 is_old.pack()
+is_term.pack()
 is_IDO.pack()
 submit_button.pack(fill='x')
 root.mainloop()
