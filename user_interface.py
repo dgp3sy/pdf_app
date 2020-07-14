@@ -62,7 +62,6 @@ def call_proccess_pdf():
             #   3 = TERM File
             #   4 = IDO Letter
             doc_type_int = doc_type.get()
-            print(doc_type_int == doc_enum.TERM.value)
             if doc_type_int == doc_enum.OLD.value:
                 process_pdf.init(each_file, doc_type=doc_enum.OLD.value)
             elif doc_type_int == doc_enum.NEW.value:
