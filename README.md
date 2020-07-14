@@ -26,7 +26,7 @@ Make sure that you have poppler and Tesseract-OCR added to your PATH. I found th
   
 ## About the System
 A detailed flowchart of the system proccess can be found below:
-<img src="https://github.com/dgp3sy/pdf_app/blob/master/Flowchart.png">
+<img src="https://github.com/dgp3sy/pdf_app/blob/master/Flowchart2.png">
 
 ## Deployment
 
