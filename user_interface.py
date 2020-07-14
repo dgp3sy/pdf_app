@@ -59,23 +59,21 @@ def call_proccess_pdf():
             # Document type determined by radio buttons:
             #   1 = New Annual Report
             #   2 = Old Annual Report
-            #   3 = IDO Letter
+            #   3 = TERM File
+            #   4 = IDO Letter
             doc_type_int = doc_type.get()
+            print(doc_type_int == doc_enum.TERM.value)
             if doc_type_int == doc_enum.OLD.value:
                 process_pdf.init(each_file, doc_type=doc_enum.OLD.value)
             elif doc_type_int == doc_enum.NEW.value:
                 process_pdf.init(each_file, doc_type=doc_enum.NEW.value)
-            elif doc_type == doc_enum.TERM.value:
+            elif doc_type_int == doc_enum.TERM.value:
                 process_pdf.init(each_file, doc_type=doc_enum.TERM.value)
             elif doc_type_int == doc_enum.IDO.value:
                 ido_reader.init_ido_reader(each_file)
-
-            else:
-                raise
         except:
             no_errors=False
             print("ERROR: Unable to process file: ", each_file)
-            raise
     if(no_errors):
         print("All files successfully processed!")
     # print("--- %s seconds ---" % (time.time() - start_time))
@@ -86,6 +84,7 @@ files = tuple()
 # establishes the root tkinter for the UI
 root = tk.Tk()
 root.geometry("500x200") # sets the size of the UI window to 500px width by 200 px height
+root.title("OYRI Automatic Report System")
 
 # defines the file types the user can search for - the purpose of this processor is mainly for pdfs
 filetypes = (
