@@ -2,7 +2,6 @@ import pytesseract
 from pytesseract import image_to_string
 from pdf2image import convert_from_path
 from PyPDF2 import PdfFileReader, PdfFileWriter
-from joblib import Parallel, delayed
 from PIL import Image
 import regular_expressions
 import time
