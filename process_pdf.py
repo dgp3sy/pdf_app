@@ -5,6 +5,7 @@ from PyPDF2 import PdfFileReader, PdfFileWriter
 from PIL import Image
 import regular_expressions
 from doc_num import doc_enum
+from doc_num import doc_to_string
 import time
 import os
 def search_document(regex_buildr, text):
@@ -21,10 +22,11 @@ def file_name_generator(filepath, file_type):
     to determine the text of the pdf document. This text is then searched using regular expressions for the
     necessary values including name, policy number and month. The file name is comprised accordingly
     :param filepath: path of the original pdf document - containing multiple annual reports
-    :param file_type: integer value mapping to the type of file you are attempting to proccess
+    :param file_type: integer value mapping to the type of file you are attempting to process
         1 : Old Annual Report Format
         2 : New Annual Report Format
         3 : Term Life Annual Report
+        4 : IDO Letter
     :return: list of the valid save names of all reports in that document
     '''
     if file_type == doc_enum.OLD.value:
@@ -33,6 +35,7 @@ def file_name_generator(filepath, file_type):
         doc_len = 2
     save_names = []
     # Split entire pdf document into its own page and analyze text
+
     pages = convert_from_path(filepath)
     output_text = ""
     count = 0
@@ -44,6 +47,8 @@ def file_name_generator(filepath, file_type):
         page.save('out.jgp', 'JPEG')
         jpg_open = Image.open('out.jgp')
         output_text += image_to_string(jpg_open, lang='eng')  # output OCR to string
+
+        # Generate New Document Name
         if count == doc_len:
             print("Processing Page", page, "...")
             output_text_list.append(output_text)
@@ -51,20 +56,22 @@ def file_name_generator(filepath, file_type):
             count = 0
 
 
+    # Pick Regular Expression
+    if file_type == doc_enum.OLD.value:
+        # set the month based on the New Annual Report Regex
+        reg_builder = regular_expressions.old_annual_regex()
+    elif file_type == doc_enum.NEW.value:
+        reg_builder = regular_expressions.new_annual_regex()
+    elif file_type == doc_enum.TERM.value:
+        reg_builder = regular_expressions.term_regex()
+    else:
+        reg_builder = regular_expressions.ido_regex()
+
     # extract information from each policy owner's form
     for text in output_text_list:
-        if file_type == doc_enum.OLD.value:
-            # set the month based on the New Annual Report Regex
-            reg_builder = regular_expressions.old_annual_regex()
-        elif file_type == doc_enum.NEW.value:
-            reg_builder = regular_expressions.new_annual_regex()
-        else:
-            reg_builder = regular_expressions.term_regex()
-
-
         # CREATE FILE NAME
         month, year, policy_no, name = search_document(reg_builder, text)
-        path_name = name + policy_no + month + year + "Annual Statement.pdf"
+        path_name = name + policy_no + month + year + doc_to_string(file_type)
         save_names.append(path_name)  # append to path name
     return save_names
 
@@ -143,4 +150,4 @@ pytesseract.pytesseract.tesseract_cmd =  r"C:\Program Files\Tesseract-OCR\tesser
 # init_old("test2.pdf")
 # print("--- %s seconds ---" % (time.time() - start_time))
 
-
+# init("D:\IDO Letter 2.pdf", 4)

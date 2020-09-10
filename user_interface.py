@@ -42,6 +42,7 @@ class Browse(tk.Frame):
                                              filetypes=self._filetypes)
         files = root.tk.splitlist(files)
         self.filepath.set(files)
+
 def call_proccess_pdf():
     """
     For each file selected in the browser UI, the system calls the init() function to process the file individually
@@ -75,6 +76,7 @@ def call_proccess_pdf():
             print("ERROR: Unable to process file: ", each_file)
     if(no_errors):
         print("All files successfully processed!")
+
     # print("--- %s seconds ---" % (time.time() - start_time))
 
 # initializes a tuple to hold all the file paths that the user selects
