@@ -70,7 +70,7 @@ def call_proccess_pdf():
             elif doc_type_int == doc_enum.TERM.value:
                 process_pdf.init(each_file, doc_type=doc_enum.TERM.value)
             elif doc_type_int == doc_enum.IDO.value:
-                ido_reader.init_ido_reader(each_file)
+                process_pdf.init(each_file, doc_type=doc_enum.IDO.value)
         except:
             no_errors=False
             print("ERROR: Unable to process file: ", each_file)
