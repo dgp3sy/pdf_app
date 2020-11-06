@@ -129,10 +129,13 @@ def init(path, doc_type, is_test=False):
 
     # splits by page and saves the files to location
     pdf = PdfFileReader(path, strict=False)
-    for page in range(0, pdf.getNumPages(), pages):
+    count=0
+    for page in range(0, pdf.getNumPages(),pages): # other operator needs to change to something ele
         if (page != "NONE"):
             pdf_writer = PdfFileWriter()
-            pdf_writer.addPage(pdf.getPage(page))
+            for i in range(pages):
+                pdf_writer.addPage(pdf.getPage(page+i))
+
 
             # select appropriate file name based on the generator
             output_filename = file_names[page//pages]
@@ -150,4 +153,4 @@ pytesseract.pytesseract.tesseract_cmd =  r"C:\Program Files\Tesseract-OCR\tesser
 # init_old("test2.pdf")
 # print("--- %s seconds ---" % (time.time() - start_time))
 
-# init("D:\IDO Letter 2.pdf", 4)
+init("C:\\Users\\jmper\\Documents\\Scans\\Term Statements\\2020-11-03_082531.pdf", 3)

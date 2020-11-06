@@ -25,7 +25,8 @@ class Report():
         :return: name: string, in the format: last name, first name
         '''
         middle_name = False
-        if name.count(' ') == 2:
+        name = name.strip()
+        if name.count(' ') >= 2:
             middle_name = True
         if middle_name:
             l = name.rfind(' ')
@@ -59,7 +60,7 @@ class new_annual_regex(Report):
     def __init__(self):
         Report.__init__(self, "New Annual Report")
         self.__date_findr_new = re.compile(r"through ([0-9]{2})/([0-9]{2})/([0-9]{4})")
-        self.__insured_findr_new = re.compile(r"Dean E Harder ([A-Za-z ]*)")
+        self.__insured_findr_new = re.compile(r"(?:Dean E Harder|DEAN E HARDER) ([A-Za-z ]*)")
         self.__insured_findr2_new = re.compile(r"Dear ([A-Za-z ]*),")
         self.__policyNo_findr_new = re.compile(r"(07[1|2][0-9]{7})")
 
@@ -94,9 +95,9 @@ class new_annual_regex(Report):
 class term_regex(Report):
     def __init__(self):
         Report.__init__(self, "Term Life Annual Report")
-        self.__date_findr = re.compile(r"Statement Date: ([A-Za-z]*) ([0-9]*), ([0-9]{4})")
+        self.__date_findr = re.compile(r"Date: ([A-Za-z]*) ([0-9]*), ([0-9]{4})")
         self.__policyNo_findr = re.compile(r"(062[0-9]{7})")
-        self.__insured_findr = re.compile(r"Dean E Harder ([A-Za-z ]*)")
+        self.__insured_findr = re.compile(r"(?:Dean E Harder|DEAN E HARDER) ([A-Za-z ]*)")
 
     def get_date_finr(self):
         return self.__date_findr
