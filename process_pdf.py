@@ -153,4 +153,3 @@ pytesseract.pytesseract.tesseract_cmd =  r"C:\Program Files\Tesseract-OCR\tesser
 # init_old("test2.pdf")
 # print("--- %s seconds ---" % (time.time() - start_time))
 
-init("C:\\Users\\jmper\\Documents\\Scans\\Term Statements\\2020-11-03_082531.pdf", 3)
